@@ -1,0 +1,33 @@
+name: build-daily-puzzle
+
+on:
+  schedule:
+    # 18:30 UTC = 00:00 IST. Cron is always UTC; IST has no DST, so this
+    # offset is exact and stable year-round.
+    - cron: '30 18 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Generate today's puzzle
+        working-directory: generator
+        run: python build_daily.py --out ../data/levels
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/levels/*.json
+          git diff --cached --quiet || git commit -m "Add puzzle for $(date -u -d '+5 hours 30 minutes' +%Y-%m-%d)"
+          git push

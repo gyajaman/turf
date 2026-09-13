@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guess the Largest Area</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Guess the Largest Area</h1>
+    <div class="date" id="date-label"></div>
+  </header>
+
+  <main id="app">
+    <section id="level-screen" class="screen" hidden>
+      <div class="level-meta">
+        <span class="level-pill" id="level-pill"></span>
+        <span class="level-progress" id="level-progress"></span>
+      </div>
+      <p class="instructions">Tap the region you think has the largest area, then confirm.</p>
+      <div class="board" id="board"></div>
+      <div class="actions">
+        <button id="guess-btn" disabled>Guess</button>
+      </div>
+      <div class="banner" id="banner" hidden></div>
+    </section>
+
+    <section id="results-screen" class="screen" hidden>
+      <h2>Today's Results</h2>
+      <div class="emoji-grid" id="emoji-grid"></div>
+      <div class="streak" id="streak-line"></div>
+      <button id="copy-btn">Copy results</button>
+      <p class="come-back">Come back tomorrow for a new puzzle.</p>
+    </section>
+
+    <section id="loading-screen" class="screen">
+      <p>Loading today's puzzle&hellip;</p>
+    </section>
+
+    <section id="error-screen" class="screen" hidden>
+      <p id="error-message">Couldn't load today's puzzle.</p>
+    </section>
+  </main>
+
+  <script src="js/date.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/grid.js"></script>
+  <script src="js/reveal.js"></script>
+  <script src="js/results.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
