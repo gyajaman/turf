@@ -2,9 +2,13 @@ name: build-daily-puzzle
 
 on:
   schedule:
-    # 18:30 UTC = 00:00 IST. Cron is always UTC; IST has no DST, so this
-    # offset is exact and stable year-round.
-    - cron: '30 18 * * *'
+    # 16:30 UTC = 22:00 IST — 2 hours before the puzzle's own IST midnight,
+    # not exactly at it. Running exactly at midnight leaves a gap (GitHub
+    # Actions' own scheduling delay, the job itself, then a Pages rebuild)
+    # where a visitor could hit a 404 for that day's file. Generating and
+    # committing ahead of time means the file — and the Pages rebuild it
+    # triggers — are already in place well before the date rolls over.
+    - cron: '30 16 * * *'
   workflow_dispatch: {}
 
 permissions:
@@ -20,14 +24,22 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Generate today's puzzle
+      - name: Generate tomorrow's puzzle
         working-directory: generator
-        run: python build_daily.py --out ../data/levels
+        run: |
+          # "Tomorrow" relative to IST, computed directly from UTC rather
+          # than relying on build_daily.py's own "today" default — this
+          # job runs before that day's IST midnight, so plain "today"
+          # would generate the wrong (already-current) date. Adding 24h to
+          # the usual +5:30 IST-conversion offset targets the day after.
+          TARGET_DATE=$(date -u -d '+29 hours 30 minutes' +%Y-%m-%d)
+          echo "TARGET_DATE=$TARGET_DATE" >> "$GITHUB_ENV"
+          python build_daily.py --date "$TARGET_DATE" --out ../data/levels
 
       - name: Commit and push if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/levels/*.json
-          git diff --cached --quiet || git commit -m "Add puzzle for $(date -u -d '+5 hours 30 minutes' +%Y-%m-%d)"
+          git diff --cached --quiet || git commit -m "Add puzzle for $TARGET_DATE"
           git push
