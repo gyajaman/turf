@@ -32,7 +32,7 @@ function buildShareText(dateLabel, progress, streak) {
   const marks = progress.levelResults.map((ok) => (ok ? "✓" : "✗")).join(" ");
   const correctCount = progress.levelResults.filter(Boolean).length;
   const total = progress.levelResults.length;
-  return `Turf — ${dateLabel}\n${marks}  ${correctCount}/${total}\n${streak.count} day streak`;
+  return `Turf — ${dateLabel}\n${marks}  ${correctCount}/${total}\n${streak.count} day streak\nhttps://gyajaman.github.io/turf/`;
 }
 
 async function copyToClipboard(text) {

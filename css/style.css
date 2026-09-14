@@ -335,10 +335,16 @@ a:hover {
      from the real content, not an estimated min-height — so the banner
      appearing only ever changes opacity/position, never anything the
      board or rest of the column has to reflow around. */
+  /* opacity/transform here are the entrance's 0% keyframe (pre-animation
+     resting state) only — no transition of its own. A `transition` on
+     these same properties used to sit here too, left over from before
+     bannerIn existed; having both a transition and an animation drive the
+     same properties at once is exactly the kind of thing that produces a
+     brief elastic-feeling wobble as the two briefly disagree, even if it's
+     too quick to show up clearly in frame sampling. */
   visibility: hidden;
   opacity: 0;
   transform: translateY(-6px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 .banner-wrap.show {
   visibility: visible;
