@@ -32,6 +32,19 @@
     errorMessage: document.getElementById("error-message"),
   };
 
+  // .banner-wrap stays in the layout at all times via visibility:hidden (see
+  // CSS) specifically so its reserved space is real, not an estimated
+  // number — but that only holds if it actually HAS content to measure.
+  // Left genuinely empty, a flex item collapses to 0×0 (no line-height
+  // "strut" the way normal inline text gets), so the very first real
+  // confirm — going from empty to actual text — grows .banner-wrap and
+  // shrinks the board's available space right under it. After that it
+  // never recurs, since the text is only ever overwritten, never cleared.
+  // Pre-filling with real (if placeholder) content up front means there's
+  // no "first time" special case at all.
+  els.bannerMark.textContent = "✓";
+  els.bannerText.textContent = "Correct — that's the biggest territory";
+
   const screens = [els.landingScreen, els.levelScreen, els.resultsScreen, els.loadingScreen, els.errorScreen];
   function showScreen(screen) {
     screens.forEach((s) => {
