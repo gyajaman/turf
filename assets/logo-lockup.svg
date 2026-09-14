@@ -1,0 +1,7 @@
+<svg width="320" height="80" viewBox="0 0 320 80" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="26.6667" width="26.6667" height="53.3333" fill="oklch(88% 0.06 75)"/>
+  <rect x="53.3333" y="26.6667" width="26.6667" height="53.3333" fill="oklch(80% 0.10 55)"/>
+  <path d="M0,0 H80 V26.6667 H53.3333 V80 H26.6667 V26.6667 H0 Z" fill="oklch(76% 0.12 35)" stroke="rgba(28,26,22,0.4)" stroke-width="1.5"/>
+  <rect x="1" y="1" width="78" height="78" fill="none" stroke="#9c6b1f" stroke-width="2"/>
+  <text x="100" y="54" font-family="'Libre Caslon Display', Georgia, serif" font-size="44" fill="#1c1a16">Turf</text>
+</svg>
