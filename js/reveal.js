@@ -1,26 +1,29 @@
-const REVEAL_STAGGER_MS = 700;
-const REVEAL_FINAL_EXTRA_MS = 400;
+const REVEAL_CONFIRM_DELAY_MS = 650;
+const REVEAL_STAGGER_MS = 550;
+const REVEAL_DONE_DELAY_MS = 300;
 
-// 1. flashes correct/wrong immediately
-// 2. reveals every region's area smallest -> largest, one at a time
-// 3. calls onDone once the largest (correct) region has been revealed
-function animateReveal(board, bannerEl, level, selectedRegionId, { onDone }) {
-  board.lock();
+// Drives the guess lifecycle: idle -> confirmed -> revealing -> done.
+// onPhaseChange(phase) fires on each transition (so the caller can update the
+// banner/board lock/button labels); onRevealRegion(region) fires once per
+// region, smallest area first, as it's individually revealed.
+function runReveal(level, { onPhaseChange, onRevealRegion, onDone }) {
+  onPhaseChange("confirmed");
 
-  const correct = selectedRegionId === level.answerRegionId;
-  bannerEl.hidden = false;
-  bannerEl.dataset.result = correct ? "correct" : "wrong";
-  bannerEl.textContent = correct ? "Correct!" : "Not quite.";
+  setTimeout(() => {
+    onPhaseChange("revealing");
+    const order = [...level.regions].sort((a, b) => a.area - b.area);
 
-  const ordered = [...level.regions].sort((a, b) => a.area - b.area);
-
-  ordered.forEach((region, i) => {
-    setTimeout(() => {
-      const isLast = i === ordered.length - 1;
-      board.markRevealed(region.id, region.area, { pulse: true });
-      if (isLast && onDone) {
-        setTimeout(onDone, REVEAL_FINAL_EXTRA_MS);
+    function step(i) {
+      if (i >= order.length) {
+        setTimeout(() => {
+          onPhaseChange("done");
+          if (onDone) onDone();
+        }, REVEAL_DONE_DELAY_MS);
+        return;
       }
-    }, i * REVEAL_STAGGER_MS);
-  });
+      onRevealRegion(order[i]);
+      setTimeout(() => step(i + 1), REVEAL_STAGGER_MS);
+    }
+    step(0);
+  }, REVEAL_CONFIRM_DELAY_MS);
 }

@@ -13,7 +13,13 @@ from rect_shapes import (
     smooth_borders,
 )
 
-PALETTE = ["#e74c3c", "#3498db", "#2ecc71", "#f39c12", "#9b59b6", "#1abc9c"]
+PALETTE = [
+    "oklch(88% 0.06 75)",
+    "oklch(80% 0.10 55)",
+    "oklch(90% 0.05 95)",
+    "oklch(76% 0.12 35)",
+    "oklch(82% 0.07 120)",
+]
 DIFFICULTIES = ["easy", "medium", "hard"]
 K_BY_DIFFICULTY = {"easy": 3, "medium": 4, "hard": 5}
 TIE_RETRY_STEP = 104729  # large prime, keeps retried seeds well spread out

@@ -53,3 +53,11 @@ function recordDayCompletion(date) {
   saveStreak(streak);
   return streak;
 }
+
+function hasSeenOnboarding() {
+  return safeGet(STORAGE_PREFIX + "onboarded") === true;
+}
+
+function markOnboardingSeen() {
+  safeSet(STORAGE_PREFIX + "onboarded", true);
+}

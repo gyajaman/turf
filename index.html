@@ -3,45 +3,97 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Guess the Largest Area</title>
+  <title>Turf</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <header class="topbar">
-    <h1>Guess the Largest Area</h1>
-    <div class="date" id="date-label"></div>
-  </header>
+  <div class="page">
+    <div class="frame" id="frame">
+      <header class="topbar">
+        <div class="wordmark">Turf</div>
+        <button id="help-btn" class="help-btn" title="How to Play" aria-label="How to Play">?</button>
+      </header>
 
-  <main id="app">
-    <section id="level-screen" class="screen" hidden>
-      <div class="level-meta">
-        <span class="level-pill" id="level-pill"></span>
-        <span class="level-progress" id="level-progress"></span>
+      <main id="app">
+        <section id="landing-screen" class="screen screen-landing" hidden>
+          <div class="eyebrow" id="landing-date"></div>
+          <h1 class="display-heading landing-heading">Today's territories are waiting</h1>
+          <p class="tagline">Three puzzles. Tap the region you think covers the most ground, then watch the reveal.</p>
+          <button id="start-btn" class="btn-primary">Play</button>
+        </section>
+
+        <section id="level-screen" class="screen screen-level" hidden>
+          <div class="level-head">
+            <div class="level-name" id="level-name"></div>
+          </div>
+
+          <div class="banner-wrap" id="banner-wrap">
+            <div class="banner" id="banner">
+              <span class="banner-mark" id="banner-mark"></span>
+              <span id="banner-text"></span>
+            </div>
+          </div>
+
+          <div class="board-wrap">
+            <div class="board-card">
+              <div class="board" id="board"></div>
+            </div>
+          </div>
+
+          <button id="guess-btn" class="btn-primary" disabled>Confirm</button>
+          <button id="continue-btn" class="btn-primary" hidden>Next</button>
+        </section>
+
+        <section id="results-screen" class="screen screen-results" hidden>
+          <h1 class="display-heading results-heading">Today's Results</h1>
+          <div class="eyebrow" id="results-date"></div>
+
+          <div class="results-list" id="results-list"></div>
+
+          <div class="streak-block">
+            <div class="streak-num" id="streak-num"></div>
+            <div class="eyebrow">Day streak</div>
+          </div>
+
+          <div class="share-wrap">
+            <a href="#" id="share-link" class="share-link">Share</a>
+            <div class="toast" id="copy-toast" hidden>Copied to clipboard</div>
+          </div>
+        </section>
+
+        <section id="loading-screen" class="screen screen-status">
+          <p>Loading today's puzzle&hellip;</p>
+        </section>
+
+        <section id="error-screen" class="screen screen-status" hidden>
+          <p id="error-message">Couldn't load today's puzzle.</p>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="onboarding" class="onboarding-backdrop" hidden>
+    <div class="onboarding-modal">
+      <h2 class="display-heading">How to Play</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-text">Every board splits into a few territories.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-text">Tap the one that looks biggest, then confirm.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-text">Try to get all three puzzles right.</div>
+        </div>
       </div>
-      <p class="instructions">Tap the region you think has the largest area, then confirm.</p>
-      <div class="board" id="board"></div>
-      <div class="actions">
-        <button id="guess-btn" disabled>Guess</button>
-      </div>
-      <div class="banner" id="banner" hidden></div>
-    </section>
-
-    <section id="results-screen" class="screen" hidden>
-      <h2>Today's Results</h2>
-      <div class="emoji-grid" id="emoji-grid"></div>
-      <div class="streak" id="streak-line"></div>
-      <button id="copy-btn">Copy results</button>
-      <p class="come-back">Come back tomorrow for a new puzzle.</p>
-    </section>
-
-    <section id="loading-screen" class="screen">
-      <p>Loading today's puzzle&hellip;</p>
-    </section>
-
-    <section id="error-screen" class="screen" hidden>
-      <p id="error-message">Couldn't load today's puzzle.</p>
-    </section>
-  </main>
+      <button id="onboarding-dismiss" class="btn-primary">Begin</button>
+    </div>
+  </div>
 
   <script src="js/date.js"></script>
   <script src="js/storage.js"></script>

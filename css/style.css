@@ -1,223 +1,610 @@
 :root {
-  --bg: #fafaf9;
-  --fg: #1c1917;
-  --muted: #78716c;
-  --card: #ffffff;
-  --border: #e7e5e4;
-  --accent: #1c1917;
-  --correct: #16a34a;
-  --wrong: #dc2626;
+  --page-bg: #e4ddcd;
+  --card-bg: #f4efe4;
+  --border: #e0dac9;
+  --text: #1c1a16;
+  --text-muted: #8a8478;
+  --text-faint: #a39c8c;
+  --accent: #9c6b1f;
+  --accent-hover: #7d551a;
+  --groove: rgba(28, 26, 22, 0.4);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #17140f;
-    --fg: #f5f5f4;
-    --muted: #a8a29e;
-    --card: #211d17;
-    --border: #38332a;
-    --accent: #f5f5f4;
-    --correct: #4ade80;
-    --wrong: #f87171;
-  }
+@keyframes bannerIn {
+  0% { opacity: 0; transform: translateY(-8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes revealPop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes modalIn {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes backdropIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes backdropOut {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes modalOut {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(10px); }
+}
+@keyframes toastIn {
+  0% { opacity: 0; transform: translateY(6px) translateX(-50%); }
+  100% { opacity: 1; transform: translateY(0) translateX(-50%); }
+}
+@keyframes toastOut {
+  0% { opacity: 1; transform: translateY(0) translateX(-50%); }
+  100% { opacity: 0; transform: translateY(6px) translateX(-50%); }
+}
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 * {
   box-sizing: border-box;
 }
 
+html,
 body {
+  height: 100%;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: var(--bg);
-  color: var(--fg);
-  min-height: 100vh;
+  /* The whole app is sized to exactly fill the viewport (see .page/.frame/
+     #app below), so nothing should ever need to scroll; this is a hard
+     backstop against any single screen's content overflowing its box. */
+  overflow: hidden;
+}
+
+body {
+  background: var(--page-bg);
+  color: var(--text);
+  font-family: "Libre Caslon Text", serif;
+}
+
+a {
+  color: var(--accent);
+}
+a:hover {
+  color: var(--accent-hover);
+}
+
+.page {
+  height: 100vh;
+  /* 100vh is a static assumption (roughly "the viewport with browser
+     chrome collapsed"); dvh tracks the REAL current viewport as mobile
+     browser chrome (address bar etc.) shows/hides during scrolling or
+     interaction. Declared second so it overrides vh only where supported;
+     without this, a chrome collapse mid-session changes what 1vh actually
+     is, our ResizeObserver sees the board's available space change, and
+     it visibly resizes — for a reason completely unrelated to whatever
+     was happening on screen at that moment. */
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+/* On a tall phone, a full 100vh frame gives the centered content (inside,
+   untouched) so much vertical room to spread across that it reads as
+   sparse rather than composed. Capping the frame shorter than the full
+   viewport keeps every internal layout rule exactly as-is — it's just
+   centering within a smaller box, with page background visible below
+   rather than the card stretching to the very bottom edge. */
+@media (max-width: 759px) {
+  .page {
+    height: 82vh;
+    height: 82dvh;
+  }
+  /* The revealed strip below the shortened frame would otherwise show
+     --page-bg, a visibly different tone from the frame's --card-bg — a
+     "box" of a different color. Matching it to the frame keeps the page
+     reading as one continuous surface instead. */
+  body {
+    background: var(--card-bg);
+  }
+}
+
+.frame {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: var(--card-bg);
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@media (min-width: 760px) {
+  .page {
+    padding: 32px 24px;
+  }
+  .frame {
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 20px rgba(28, 26, 22, 0.08);
+    border-radius: 2px;
+  }
+}
+
+/* Every screen lives in this flex-filling middle area, so the landing,
+   level, and results screens all occupy the exact same box (header height
+   + this) regardless of how much content each one has. */
+#app {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .topbar {
+  position: relative;
+  z-index: 2;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 20px 16px 8px;
-  text-align: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 20px;
+  border-bottom: 1px solid var(--border);
 }
 
-.topbar h1 {
-  font-size: 1.3rem;
-  margin: 0;
-  letter-spacing: -0.01em;
+@media (min-width: 760px) {
+  .topbar {
+    padding: 26px 32px;
+  }
 }
 
-.date {
-  color: var(--muted);
-  font-size: 0.85rem;
+.wordmark {
+  font-family: "Libre Caslon Display", serif;
+  font-size: 24px;
+  letter-spacing: 0.01em;
+  line-height: 1;
 }
 
-main#app {
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 12px 16px 48px;
+.help-btn {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: 50%;
+  border: 1px solid var(--text-faint);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: "Libre Caslon Text", serif;
+  font-size: 12px;
+  cursor: pointer;
+}
+.help-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .screen[hidden] {
   display: none !important;
 }
 
-.level-meta {
+.display-heading {
+  font-family: "Libre Caslon Display", serif;
+  color: var(--text);
+  margin: 0;
+  font-weight: 400;
+}
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* Landing */
+.screen-landing {
+  flex: 1;
+  min-height: 0;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 8px;
+  justify-content: center;
+  text-align: center;
+  gap: 24px;
+  padding: clamp(24px, 8vh, 96px) 32px;
+  animation: fadeInUp 0.45s ease;
+}
+@media (max-width: 680px) {
+  .screen-landing {
+    padding: clamp(20px, 6vh, 56px) 20px;
+  }
 }
 
-.level-pill {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: var(--card);
+.landing-heading {
+  font-size: 40px;
+  line-height: 1.25;
+  max-width: 480px;
+}
+@media (max-width: 680px) {
+  .landing-heading {
+    font-size: 30px;
+  }
+}
+
+.tagline {
+  font-style: italic;
+  font-size: 16px;
+  color: var(--text);
+  opacity: 0.75;
+  max-width: 380px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.btn-primary {
+  margin-top: 16px;
+  padding: 14px 36px;
+  border: none;
+  border-radius: 2px;
+  background: var(--accent);
+  color: var(--card-bg);
+  font-family: "Libre Caslon Text", serif;
+  font-size: 15px;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+.btn-primary:disabled {
+  cursor: default;
+  background: var(--border);
+  color: var(--text-faint);
+}
+.btn-primary[hidden] {
+  display: none !important;
+}
+
+/* Level / play */
+.screen-level {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: clamp(20px, 6vh, 44px) 32px;
+  animation: fadeInUp 0.4s ease;
+}
+@media (max-width: 680px) {
+  .screen-level {
+    padding: clamp(16px, 5vh, 36px) 18px;
+  }
+}
+
+.level-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.level-name {
+  font-family: "Libre Caslon Text", serif;
+  font-style: italic;
+  font-size: 19px;
+  line-height: 1.3;
+}
+
+.banner-wrap {
+  /* visibility:hidden (not display:none, not a collapsed height) keeps
+     this in normal layout flow at its real, actual rendered size at all
+     times — the space is genuinely always there, computed by the browser
+     from the real content, not an estimated min-height — so the banner
+     appearing only ever changes opacity/position, never anything the
+     board or rest of the column has to reflow around. */
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.banner-wrap.show {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  animation: bannerIn 0.35s ease;
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  max-width: 100%;
+}
+.banner-mark {
+  font-family: "Libre Caslon Display", serif;
+  font-size: 18px;
+}
+.banner.correct .banner-mark {
+  color: var(--accent);
+}
+.banner.wrong .banner-mark {
+  color: var(--text-muted);
+}
+.banner span:last-child {
+  font-size: 14px;
+  color: var(--text);
+  /* Locked to exactly one line, always — never 0 lines (empty, before the
+     first guess) or 2 (a long message wrapping) — so this element's
+     height is structurally constant no matter what's in it. That's what
+     makes the reserved space above actually reliable: visibility:hidden
+     only preserves whatever height is already there, and it was still
+     changing size the instant real text replaced the empty string. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* Purely a layout container: claims the available vertical space in
+   .screen-level and centers .board-card within it. No border/background of
+   its own — that chrome lives on .board-card, which hugs the board's own
+   computed size, so there's never an oversized empty frame around a
+   smaller board. */
+.board-wrap {
+  width: 100%;
+  max-width: 640px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.board-card {
+  padding: 18px;
+  background: var(--card-bg);
   border: 1px solid var(--border);
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: capitalize;
+  box-shadow: 0 2px 10px rgba(28, 26, 22, 0.05);
+  box-sizing: border-box;
+  max-width: 100%;
+  max-height: 100%;
 }
-
-.level-progress {
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-.instructions {
-  color: var(--muted);
-  font-size: 0.9rem;
-  margin: 0 0 12px;
+@media (max-width: 680px) {
+  .board-card {
+    padding: 12px;
+  }
 }
 
 .board {
+  /* width/height are set explicitly in JS (js/grid.js computeGeometry),
+     computed from .board-wrap's actual available space — the largest size
+     that fits both dimensions while keeping the grid's aspect ratio. */
   position: relative;
-  display: grid;
-  gap: 1px;
-  background: var(--border);
-  border: 1px solid var(--border);
-  border-radius: 10px;
   overflow: hidden;
-  aspect-ratio: var(--board-cols) / var(--board-rows);
-}
-
-.cell {
-  position: relative;
-  cursor: pointer;
-  transition: filter 120ms ease, transform 120ms ease;
-}
-
-.board[data-locked="true"] .cell {
-  cursor: default;
-}
-
-.board[data-selected] .cell[data-region] {
-  filter: brightness(0.72) saturate(0.85);
-}
-
-.board[data-selected] .cell[data-selected-region="true"] {
-  filter: brightness(1.08) saturate(1.1);
-}
-
-.cell[data-revealed="true"] {
-  filter: none;
-}
-
-.cell.reveal-pulse {
-  animation: pulse 500ms ease;
+  border: 1px solid var(--border);
 }
 
 .region-label {
   position: absolute;
-  transform: translate(-50%, -50%) scale(0.6);
+  transform: translate(-50%, -50%);
+  font-family: "Libre Caslon Text", serif;
   font-weight: 700;
-  font-size: clamp(0.9rem, 4vw, 1.3rem);
-  color: #fff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  font-size: 15px;
+  color: var(--text);
+  animation: revealPop 0.4s ease;
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 220ms ease, transform 220ms ease;
 }
 
-.region-label.region-label-in {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  40% { transform: scale(1.08); }
-  100% { transform: scale(1); }
-}
-
-.actions {
+/* Results */
+.screen-results {
   display: flex;
-  justify-content: center;
-  margin-top: 16px;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+  padding: 64px 32px 80px;
+  animation: fadeInUp 0.45s ease;
+  text-align: center;
+}
+@media (max-width: 680px) {
+  .screen-results {
+    padding: 40px 20px 56px;
+  }
 }
 
-button {
-  font-family: inherit;
-  font-size: 0.95rem;
-  font-weight: 600;
-  padding: 10px 24px;
-  border-radius: 999px;
-  border: none;
-  background: var(--accent);
-  color: var(--bg);
+.results-heading {
+  font-size: 32px;
+}
+
+.results-list {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  margin-top: 6px;
+}
+
+.result-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.result-name {
+  font-style: italic;
+  font-size: 15px;
+}
+
+.result-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.result-mark {
+  font-family: "Libre Caslon Display", serif;
+  font-size: 14px;
+}
+.result-row.correct .result-mark {
+  color: var(--accent);
+}
+.result-row.wrong .result-mark {
+  color: var(--text-muted);
+}
+
+.streak-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.streak-num {
+  font-family: "Libre Caslon Display", serif;
+  font-size: 36px;
+}
+
+.share-wrap {
+  position: relative;
+  margin-top: 8px;
+}
+
+.share-link {
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  color: var(--accent);
+  text-decoration: underline;
   cursor: pointer;
 }
 
-button:disabled {
-  opacity: 0.35;
-  cursor: default;
+.toast {
+  position: absolute;
+  top: -34px;
+  left: 50%;
+  white-space: nowrap;
+  padding: 7px 14px;
+  background: var(--text);
+  color: var(--card-bg);
+  font-size: 12px;
+  animation: toastIn 0.2s ease;
+  transform: translateX(-50%);
+}
+.toast[hidden] {
+  display: none !important;
+}
+.toast.closing {
+  animation: toastOut 0.2s ease forwards;
 }
 
-.banner {
-  margin-top: 14px;
+/* Status (loading / error) */
+.screen-status {
   text-align: center;
-  font-weight: 700;
-  font-size: 1.05rem;
-  padding: 8px;
-  border-radius: 8px;
+  color: var(--text-muted);
+  padding: 80px 32px;
 }
 
-.banner[data-result="correct"] {
-  color: var(--correct);
+/* Onboarding modal */
+.onboarding-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--page-bg);
+  z-index: 50;
+  animation: backdropIn 0.25s ease;
+  padding: 20px;
+}
+.onboarding-backdrop[hidden] {
+  display: none !important;
+}
+/* Applied just before hiding, so the modal fades/slides out instead of
+   vanishing instantly — main.js waits for this animation to finish before
+   actually setting [hidden]. */
+.onboarding-backdrop.closing {
+  animation: backdropOut 0.25s ease forwards;
+}
+.onboarding-backdrop.closing .onboarding-modal {
+  animation: modalOut 0.25s ease forwards;
 }
 
-.banner[data-result="wrong"] {
-  color: var(--wrong);
-}
-
-#results-screen {
+.onboarding-modal {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  animation: modalIn 0.3s ease;
   text-align: center;
 }
-
-.emoji-grid {
-  font-size: 2rem;
-  letter-spacing: 6px;
-  margin: 16px 0;
+.onboarding-modal .display-heading {
+  font-size: 26px;
 }
 
-.streak {
-  color: var(--muted);
-  margin-bottom: 20px;
-  font-size: 0.95rem;
+.steps {
+  display: flex;
+  flex-direction: column;
 }
 
-.come-back {
-  color: var(--muted);
-  font-size: 0.85rem;
-  margin-top: 20px;
+.step {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
 }
 
-#loading-screen,
-#error-screen {
-  text-align: center;
-  color: var(--muted);
-  padding: 40px 0;
+.step-num {
+  flex: none;
+  font-family: "Libre Caslon Display", serif;
+  font-size: 15px;
+  color: var(--accent);
+  width: 16px;
+}
+
+.step-text {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* On desktop the modal is a small island in the middle of a lot of empty
+   page — scale it up so "How to Play" reads as a real screen of its own
+   rather than a small dialog lost in the space. */
+@media (min-width: 760px) {
+  .onboarding-modal {
+    max-width: 560px;
+    gap: 32px;
+  }
+  .onboarding-modal .display-heading {
+    font-size: 38px;
+  }
+  .step {
+    padding: 20px 0;
+    gap: 24px;
+  }
+  .step-num {
+    font-size: 20px;
+    width: 22px;
+  }
+  .step-text {
+    font-size: 17px;
+    line-height: 1.65;
+  }
+  .onboarding-modal .btn-primary {
+    align-self: center;
+    padding: 16px 44px;
+    font-size: 16px;
+  }
 }

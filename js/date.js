@@ -21,3 +21,17 @@ function istDaysBetween(dateStrA, dateStrB) {
   const b = parseDateStrAsUTC(dateStrB);
   return Math.round((b - a) / 86400000);
 }
+
+// Display-only formatting ("Monday, Sep 14") of an IST date string. Built
+// from the UTC-anchored parse and rendered with timeZone:"UTC" so the label
+// never shifts due to the viewer's own timezone — this is purely cosmetic
+// and never used as the key for fetching/storage (getISTDateString is).
+function formatISTDateDisplay(dateStr) {
+  const ms = parseDateStrAsUTC(dateStr);
+  return new Date(ms).toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}

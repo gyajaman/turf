@@ -1,18 +1,24 @@
-# Guess the Largest Area
+# Turf
 
 A daily puzzle game: three levels a day (easy, medium, hard), each showing a
-grid tiled into colored regions — pick the one with the largest area. Static
+board tiled into a few territories — tap the one you think covers the most
+ground, confirm, and watch the areas reveal smallest to largest. Static
 site, no backend; a GitHub Actions cron job regenerates the puzzle every
 midnight IST and commits it as JSON.
 
 ## Local development
 
-Generate a puzzle for a given date (stdlib only, no dependencies):
+The site always loads today's puzzle by the real IST calendar date (no date
+override) — so to preview it locally, generate today's date specifically
+(stdlib only, no dependencies):
 
 ```bash
 cd generator
-python build_daily.py --date 2026-09-14 --out ../data/levels
+python build_daily.py --out ../data/levels
 ```
+
+`--date YYYY-MM-DD` is still available for generating other dates (e.g. for
+CI backfills), it's just not selectable from the page itself.
 
 Serve the site (plain `file://` won't work because of `fetch()` + CORS):
 
@@ -20,9 +26,7 @@ Serve the site (plain `file://` won't work because of `fetch()` + CORS):
 python -m http.server 8000
 ```
 
-Open `http://localhost:8000/`. To preview a specific generated date without
-waiting for real IST midnight, use `?date=YYYY-MM-DD`, e.g.
-`http://localhost:8000/?date=2026-09-14`.
+Open `http://localhost:8000/`.
 
 ## How it's generated
 

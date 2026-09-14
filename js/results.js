@@ -1,13 +1,38 @@
-function renderResults(elements, progress, streak) {
-  const { emojiGrid, streakLine } = elements;
-  emojiGrid.textContent = progress.levelResults.map((ok) => (ok ? "🟩" : "🟥")).join("");
-  const streakWord = streak.count === 1 ? "day" : "days";
-  streakLine.textContent = `🔥 ${streak.count} ${streakWord} in a row`;
+function renderResults(elements, levelNames, progress, streak) {
+  const { resultsList, streakNum } = elements;
+  resultsList.innerHTML = "";
+
+  progress.levelResults.forEach((ok, i) => {
+    const row = document.createElement("div");
+    row.className = "result-row " + (ok ? "correct" : "wrong");
+
+    const name = document.createElement("span");
+    name.className = "result-name";
+    name.textContent = levelNames[i];
+
+    const badge = document.createElement("div");
+    badge.className = "result-badge";
+
+    const mark = document.createElement("span");
+    mark.className = "result-mark";
+    mark.textContent = ok ? "✓" : "✗";
+
+    badge.appendChild(mark);
+    badge.appendChild(document.createTextNode(ok ? "Correct" : "Wrong"));
+
+    row.appendChild(name);
+    row.appendChild(badge);
+    resultsList.appendChild(row);
+  });
+
+  streakNum.textContent = String(streak.count);
 }
 
-function buildShareText(date, progress, streak) {
-  const emojis = progress.levelResults.map((ok) => (ok ? "🟩" : "🟥")).join("");
-  return `Guess the Largest Area — ${date}\n${emojis}\n🔥 streak: ${streak.count}`;
+function buildShareText(dateLabel, progress, streak) {
+  const marks = progress.levelResults.map((ok) => (ok ? "✓" : "✗")).join(" ");
+  const correctCount = progress.levelResults.filter(Boolean).length;
+  const total = progress.levelResults.length;
+  return `Turf — ${dateLabel}\n${marks}  ${correctCount}/${total}\n${streak.count} day streak`;
 }
 
 async function copyToClipboard(text) {
