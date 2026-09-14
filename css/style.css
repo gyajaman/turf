@@ -151,6 +151,27 @@ a:hover {
   padding: 20px 20px;
   border-bottom: 1px solid var(--border);
 }
+/* The header otherwise only scales UP for desktop (below) — on its own,
+   mobile was stuck at the smallest sizes, which read as undersized on an
+   actual phone rather than proportionate to it. */
+@media (max-width: 759px) {
+  .topbar {
+    padding: 22px 20px;
+  }
+  .wordmark {
+    font-size: 29px;
+    gap: 10px;
+  }
+  .wordmark-icon {
+    width: 27px;
+    height: 27px;
+  }
+  .help-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+}
 
 @media (min-width: 760px) {
   .topbar {
