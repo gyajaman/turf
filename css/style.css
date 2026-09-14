@@ -591,6 +591,9 @@ a:hover {
 .steps {
   display: flex;
   flex-direction: column;
+  align-self: center;
+  width: 100%;
+  max-width: 320px;
 }
 
 .step {
@@ -625,6 +628,9 @@ a:hover {
   }
   .onboarding-modal .display-heading {
     font-size: 38px;
+  }
+  .steps {
+    max-width: 420px;
   }
   .step {
     padding: 20px 0;
