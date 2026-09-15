@@ -346,6 +346,36 @@ a:hover {
   gap: 2px;
 }
 
+.timer-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.timer-display[hidden] {
+  display: none;
+}
+/* Plays once, right as the reveal finishes and it's about to be replaced
+   by the score — the countdown visibly melts away rather than just
+   vanishing when the swap happens. */
+.timer-display.fade-out {
+  animation: fadeOut 0.25s ease forwards;
+}
+
+/* Same face/size as .level-score on purpose — the countdown sits in the
+   exact spot the score will take over a moment later, so the swap reads
+   as one number turning into another, not an unrelated element appearing. */
+.timer-number {
+  font-family: "Libre Caslon Text", serif;
+  font-variant-numeric: tabular-nums;
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--accent);
+}
+.timer-display.urgent .timer-number {
+  color: #a8402a;
+}
+
 .timer-track {
   width: 140px;
   height: 4px;
@@ -359,7 +389,7 @@ a:hover {
   background: var(--accent);
   border-radius: 2px;
 }
-.timer-track.urgent .timer-fill {
+.timer-display.urgent .timer-fill {
   background: #a8402a;
 }
 
@@ -368,6 +398,12 @@ a:hover {
   flex-direction: column;
   align-items: center;
   gap: 2px;
+  /* A wrong/timed-out guess scores 0, so animateCountUp's 0-to-0 case sets
+     "+0" instantly with no count-up motion at all — without this, it pops
+     in abruptly right as the timer finishes fading out. Fading the whole
+     container in gives every outcome the same soft entrance, count-up or
+     not. */
+  animation: fadeInUp 0.3s ease;
 }
 .score-reveal[hidden] {
   display: none;

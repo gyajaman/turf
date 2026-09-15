@@ -12,6 +12,8 @@
 
     levelScreen: document.getElementById("level-screen"),
     levelName: document.getElementById("level-name"),
+    timerDisplay: document.getElementById("timer-display"),
+    timerNumber: document.getElementById("timer-number"),
     timerTrack: document.getElementById("timer-track"),
     timerFill: document.getElementById("timer-fill"),
     scoreReveal: document.getElementById("score-reveal"),
@@ -105,7 +107,8 @@
     stopTimer();
     timerStartedAt = performance.now();
     let remaining = LEVEL_TIME_LIMIT_S;
-    els.timerTrack.classList.remove("urgent");
+    els.timerDisplay.classList.remove("urgent");
+    els.timerNumber.textContent = String(remaining);
     els.timerFill.style.transition = "none";
     els.timerFill.style.width = "100%";
     void els.timerFill.offsetWidth;
@@ -114,7 +117,8 @@
 
     timerInterval = setInterval(() => {
       remaining -= 1;
-      if (remaining <= 5) els.timerTrack.classList.add("urgent");
+      els.timerNumber.textContent = String(Math.max(0, remaining));
+      if (remaining <= 5) els.timerDisplay.classList.add("urgent");
       if (remaining <= 0) {
         stopTimer();
         onExpire();
@@ -254,7 +258,8 @@
     void els.bannerWrap.offsetWidth;
     els.bannerWrap.style.transition = "";
     els.banner.className = "banner";
-    els.timerTrack.hidden = false;
+    els.timerDisplay.hidden = false;
+    els.timerDisplay.classList.remove("fade-out");
     els.scoreReveal.hidden = true;
     els.guessBtn.hidden = false;
     els.guessBtn.disabled = true;
@@ -278,7 +283,8 @@
 
       // A timeout with nothing selected counts as wrong, same as picking
       // any other region — running out the clock isn't a way to skip.
-      const correct = selected !== null && selected === level.answerRegionId;
+      const timedOut = selected === null;
+      const correct = !timedOut && selected === level.answerRegionId;
       // Wrong answers score nothing — speed only pays off on a level you
       // actually solved. Base reward scales with difficulty so a correct
       // hard guess is worth more than an equally fast easy one.
@@ -296,7 +302,9 @@
             els.bannerMark.textContent = correct ? "✓" : "✗";
             els.bannerText.textContent = correct
               ? "Correct — that's the biggest territory"
-              : "Not quite — here's how it stacked up";
+              : timedOut
+                ? "Time's up — here's how it stacked up"
+                : "Not quite — here's how it stacked up";
             els.banner.className = "banner " + (correct ? "correct" : "wrong");
             els.bannerWrap.classList.add("show");
             els.guessBtn.textContent = "Locking in…";
@@ -309,13 +317,16 @@
             // and board-wrap (flex:1) would visibly grow to fill it and
             // then snap back once continueBtn appeared.
             els.guessBtn.textContent = "Scoring…";
-            els.timerTrack.hidden = true;
-            els.scoreReveal.hidden = false;
-            revealScore(base, bonus, () => {
-              els.guessBtn.hidden = true;
-              els.continueBtn.hidden = false;
-              els.continueBtn.textContent = i + 1 >= dayData.levels.length ? "See results" : "Next";
-            });
+            els.timerDisplay.classList.add("fade-out");
+            setTimeout(() => {
+              els.timerDisplay.hidden = true;
+              els.scoreReveal.hidden = false;
+              revealScore(base, bonus, () => {
+                els.guessBtn.hidden = true;
+                els.continueBtn.hidden = false;
+                els.continueBtn.textContent = i + 1 >= dayData.levels.length ? "See results" : "Next";
+              });
+            }, 250);
           }
         },
         onRevealRegion: (region) => {
