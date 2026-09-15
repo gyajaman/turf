@@ -276,6 +276,7 @@ function renderBoard(container, level, cols, rows) {
   });
 
   const coordSumByRegion = {}; // regionId -> { sumX, sumY, count }
+  const cellsByRegion = {}; // regionId -> [{x, y}, ...]
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       const regionId = owner[y * cols + x];
@@ -284,6 +285,7 @@ function renderBoard(container, level, cols, rows) {
       s.sumY += y;
       s.count += 1;
       coordSumByRegion[regionId] = s;
+      (cellsByRegion[regionId] || (cellsByRegion[regionId] = [])).push({ x, y });
     }
   }
 
@@ -302,8 +304,23 @@ function renderBoard(container, level, cols, rows) {
     },
     markRevealed(regionId, area) {
       const { sumX, sumY, count } = coordSumByRegion[regionId];
-      const cx = sumX / count + 0.5;
-      const cy = sumY / count + 0.5;
+      const rawCx = sumX / count;
+      const rawCy = sumY / count;
+      // The mean of an L/T-shaped (non-convex) region's cells can land in a
+      // notch that isn't actually part of the region — or even inside a
+      // neighboring one. Snap to whichever of the region's own cells is
+      // closest to that point instead, so the label is always on-territory.
+      let nearest = cellsByRegion[regionId][0];
+      let nearestDist = Infinity;
+      for (const cell of cellsByRegion[regionId]) {
+        const d = (cell.x - rawCx) ** 2 + (cell.y - rawCy) ** 2;
+        if (d < nearestDist) {
+          nearestDist = d;
+          nearest = cell;
+        }
+      }
+      const cx = nearest.x + 0.5;
+      const cy = nearest.y + 0.5;
       const label = document.createElement("span");
       label.className = "region-label";
       label.style.left = `${(cx / cols) * 100}%`;

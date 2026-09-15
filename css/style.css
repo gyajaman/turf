@@ -46,6 +46,10 @@
   0% { opacity: 0; transform: translateY(10px); }
   100% { opacity: 1; transform: translateY(0); }
 }
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
 
 * {
   box-sizing: border-box;
@@ -328,6 +332,74 @@ a:hover {
   line-height: 1.3;
 }
 
+/* Fixed height regardless of which child (bar, or the taller two-line
+   score reveal) is showing, so swapping between them never reflows the
+   board underneath — the same class of bug the banner's reserved space
+   had to solve for. Sized to the tallest state (score + bonus label) up
+   front, with the slimmer timer bar simply centered within it. */
+.level-meter {
+  min-height: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.timer-track {
+  width: 140px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  overflow: hidden;
+}
+.timer-fill {
+  height: 100%;
+  width: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+}
+.timer-track.urgent .timer-fill {
+  background: #a8402a;
+}
+
+.score-reveal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.score-reveal[hidden] {
+  display: none;
+}
+
+.level-score {
+  font-family: "Libre Caslon Text", serif;
+  font-variant-numeric: tabular-nums;
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--accent);
+}
+
+/* Always occupies its line, even at rest (opacity 0) — toggling it with
+   `hidden` would change .score-reveal's total height while it's centered
+   as a group in .level-meter, which visibly nudges .level-score (the line
+   above it) upward the instant the label appears. Fading opacity alone
+   keeps the block's height constant so nothing above it moves. */
+.score-bonus-label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0;
+}
+.score-bonus-label.visible {
+  animation: fadeInUp 0.25s ease forwards;
+}
+.score-bonus-label.fade-out {
+  animation: fadeOut 0.35s ease forwards;
+}
+
 .banner-wrap {
   /* visibility:hidden (not display:none, not a collapsed height) keeps
      this in normal layout flow at its real, actual rendered size at all
@@ -498,12 +570,22 @@ a:hover {
   color: var(--text-muted);
 }
 
+.result-score {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+
+.stats-row {
+  display: flex;
+  gap: 40px;
+  margin-top: 4px;
+}
+
 .streak-block {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  margin-top: 4px;
 }
 
 .streak-num {

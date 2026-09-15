@@ -1,5 +1,9 @@
+function totalScore(progress) {
+  return progress.levelScores.reduce((sum, s) => sum + (typeof s === "number" ? s : 0), 0);
+}
+
 function renderResults(elements, levelNames, progress, streak) {
-  const { resultsList, streakNum } = elements;
+  const { resultsList, streakNum, scoreNum } = elements;
   resultsList.innerHTML = "";
 
   progress.levelResults.forEach((ok, i) => {
@@ -20,19 +24,28 @@ function renderResults(elements, levelNames, progress, streak) {
     badge.appendChild(mark);
     badge.appendChild(document.createTextNode(ok ? "Correct" : "Wrong"));
 
+    const score = progress.levelScores[i];
+    if (typeof score === "number") {
+      const scoreSpan = document.createElement("span");
+      scoreSpan.className = "result-score";
+      scoreSpan.textContent = `+${score}`;
+      badge.appendChild(scoreSpan);
+    }
+
     row.appendChild(name);
     row.appendChild(badge);
     resultsList.appendChild(row);
   });
 
   streakNum.textContent = String(streak.count);
+  scoreNum.textContent = String(totalScore(progress));
 }
 
 function buildShareText(dateLabel, progress, streak) {
   const marks = progress.levelResults.map((ok) => (ok ? "✓" : "✗")).join(" ");
   const correctCount = progress.levelResults.filter(Boolean).length;
   const total = progress.levelResults.length;
-  return `Turf — ${dateLabel}\n${marks}  ${correctCount}/${total}\n${streak.count} day streak\nhttps://gyajaman.github.io/turf/`;
+  return `Turf — ${dateLabel}\n${marks}  ${correctCount}/${total}\n${totalScore(progress)} pts · ${streak.count} day streak\nhttps://gyajaman.github.io/turf/`;
 }
 
 async function copyToClipboard(text) {

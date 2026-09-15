@@ -24,6 +24,7 @@ DIFFICULTIES = ["easy", "medium", "hard"]
 K_BY_DIFFICULTY = {"easy": 3, "medium": 4, "hard": 5}
 TIE_RETRY_STEP = 104729  # large prime, keeps retried seeds well spread out
 MAX_TIE_RETRIES = 20
+MIN_WIN_MARGIN = 1.15  # largest region must beat the runner-up by at least this ratio
 
 
 def ist_today_str():
@@ -57,10 +58,10 @@ def build_level(m, n, k, difficulty, seed):
         cells_by_region = build_owner_grid(m, n, k, difficulty, level_seed)
         areas = {rid: len(cells) for rid, cells in cells_by_region.items()}
         ranked = sorted(areas.items(), key=lambda kv: -kv[1])
-        if ranked[0][1] != ranked[1][1]:
+        if ranked[0][1] >= ranked[1][1] * MIN_WIN_MARGIN:
             break
     else:
-        raise RuntimeError(f"could not resolve an area tie for {difficulty} seed={seed}")
+        raise RuntimeError(f"could not find a clear winner for {difficulty} seed={seed}")
 
     answer_region_id = ranked[0][0]
 
@@ -82,7 +83,7 @@ def build_level(m, n, k, difficulty, seed):
     }
 
 
-def build_day(date_str, m=24, n=16):
+def build_day(date_str, m=12, n=8):
     seed_base = int(date_str.replace("-", ""))
     levels = [
         build_level(m, n, K_BY_DIFFICULTY[diff], diff, seed=seed_base * 10 + i)
@@ -100,8 +101,8 @@ def main():
     parser = argparse.ArgumentParser(description="Generate a day's 3-level puzzle set.")
     parser.add_argument("--date", default=None, help="YYYY-MM-DD (defaults to today in IST)")
     parser.add_argument("--out", default="data/levels", help="output directory")
-    parser.add_argument("--m", type=int, default=24, help="grid columns")
-    parser.add_argument("--n", type=int, default=16, help="grid rows")
+    parser.add_argument("--m", type=int, default=12, help="grid columns")
+    parser.add_argument("--n", type=int, default=8, help="grid rows")
     args = parser.parse_args()
 
     date_str = args.date or ist_today_str()

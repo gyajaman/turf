@@ -12,6 +12,11 @@
 
     levelScreen: document.getElementById("level-screen"),
     levelName: document.getElementById("level-name"),
+    timerTrack: document.getElementById("timer-track"),
+    timerFill: document.getElementById("timer-fill"),
+    scoreReveal: document.getElementById("score-reveal"),
+    levelScore: document.getElementById("level-score"),
+    scoreBonusLabel: document.getElementById("score-bonus-label"),
     bannerWrap: document.getElementById("banner-wrap"),
     banner: document.getElementById("banner"),
     bannerMark: document.getElementById("banner-mark"),
@@ -24,6 +29,7 @@
     resultsDate: document.getElementById("results-date"),
     resultsList: document.getElementById("results-list"),
     streakNum: document.getElementById("streak-num"),
+    scoreNum: document.getElementById("score-num"),
     shareLink: document.getElementById("share-link"),
     copyToast: document.getElementById("copy-toast"),
 
@@ -61,6 +67,109 @@
     el.style.animation = "none";
     void el.offsetWidth;
     el.style.animation = "";
+  }
+
+  // Forces a real decision instead of a careful count of the grid's cells —
+  // at 12x8 a patient player could otherwise just tally squares per region.
+  const LEVEL_TIME_LIMIT_S = 20;
+  const LEVEL_BASE_SCORE = { easy: 100, medium: 200, hard: 300 };
+  const TIME_BONUS_PER_SECOND = 10;
+  let timerInterval = null;
+  let timerStartedAt = null;
+
+  // The score a confirm should earn: whole seconds still left on the clock,
+  // measured from real elapsed time (not the once-a-second tick counter,
+  // which lags a click by up to 999ms) — this is also what makes an
+  // expired timer naturally score 0, with no separate case to handle.
+  function remainingSeconds() {
+    if (timerStartedAt === null) return 0;
+    const elapsedS = (performance.now() - timerStartedAt) / 1000;
+    return Math.max(0, LEVEL_TIME_LIMIT_S - elapsedS);
+  }
+
+  function stopTimer() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    // clearInterval only stops the tick; the CSS transition driving the bar
+    // toward 0% keeps animating on its own otherwise, so a manual confirm
+    // would leave it visibly draining underneath the reveal. Freeze it at
+    // its current width instead.
+    const currentWidth = getComputedStyle(els.timerFill).width;
+    els.timerFill.style.transition = "none";
+    els.timerFill.style.width = currentWidth;
+  }
+
+  function startTimer(onExpire) {
+    stopTimer();
+    timerStartedAt = performance.now();
+    let remaining = LEVEL_TIME_LIMIT_S;
+    els.timerTrack.classList.remove("urgent");
+    els.timerFill.style.transition = "none";
+    els.timerFill.style.width = "100%";
+    void els.timerFill.offsetWidth;
+    els.timerFill.style.transition = `width ${LEVEL_TIME_LIMIT_S}s linear`;
+    els.timerFill.style.width = "0%";
+
+    timerInterval = setInterval(() => {
+      remaining -= 1;
+      if (remaining <= 5) els.timerTrack.classList.add("urgent");
+      if (remaining <= 0) {
+        stopTimer();
+        onExpire();
+      }
+    }, 1000);
+  }
+
+  // Counts els.levelScore from `from` to `to` instead of just setting it,
+  // so each stage of the score reveal below reads as something happening
+  // in the moment rather than a static number appearing. Calls onDone once
+  // the count settles on `to`.
+  function animateCountUp(from, to, durationMs, onDone) {
+    if (to <= from) {
+      els.levelScore.textContent = `+${to}`;
+      if (onDone) onDone();
+      return;
+    }
+    const start = performance.now();
+    function frame(now) {
+      const t = Math.min(1, (now - start) / durationMs);
+      els.levelScore.textContent = `+${Math.round(from + t * (to - from))}`;
+      if (t < 1) {
+        requestAnimationFrame(frame);
+      } else if (onDone) {
+        onDone();
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // Base first, then (if there's anything to show) a "Time Bonus" callout
+  // fades in and the same number keeps counting up from base to the full
+  // total — a fast, correct guess reads as base score *plus* a reward for
+  // speed, not just one flat number appearing.
+  function revealScore(base, bonus, onDone) {
+    els.scoreBonusLabel.classList.remove("visible", "fade-out");
+    animateCountUp(0, base, 450, () => {
+      if (bonus <= 0) {
+        if (onDone) onDone();
+        return;
+      }
+      els.scoreBonusLabel.classList.add("visible");
+      setTimeout(() => {
+        animateCountUp(base, base + bonus, 450, () => {
+          if (onDone) onDone();
+          // Let the final total sit for a beat before the "Time Bonus"
+          // label fades — the number itself stays put, only the label
+          // (its job now done) goes away.
+          setTimeout(() => {
+            els.scoreBonusLabel.classList.remove("visible");
+            els.scoreBonusLabel.classList.add("fade-out");
+          }, 400);
+        });
+      }, 550);
+    });
   }
 
   function setupOnboarding() {
@@ -145,6 +254,8 @@
     void els.bannerWrap.offsetWidth;
     els.bannerWrap.style.transition = "";
     els.banner.className = "banner";
+    els.timerTrack.hidden = false;
+    els.scoreReveal.hidden = true;
     els.guessBtn.hidden = false;
     els.guessBtn.disabled = true;
     els.guessBtn.textContent = "Confirm";
@@ -159,13 +270,26 @@
       els.guessBtn.disabled = false;
     });
 
-    els.guessBtn.onclick = () => {
-      if (selected === null) return;
+    function confirmGuess() {
+      const remaining = remainingSeconds(); // capture the instant of confirm
+      stopTimer();
       board.lock();
       els.guessBtn.disabled = true;
 
-      const correct = selected === level.answerRegionId;
+      // A timeout with nothing selected counts as wrong, same as picking
+      // any other region — running out the clock isn't a way to skip.
+      const correct = selected !== null && selected === level.answerRegionId;
+      // Wrong answers score nothing — speed only pays off on a level you
+      // actually solved. Base reward scales with difficulty so a correct
+      // hard guess is worth more than an equally fast easy one.
+      const base = correct ? LEVEL_BASE_SCORE[level.difficulty] : 0;
+      const bonus = correct ? Math.round(remaining) * TIME_BONUS_PER_SECOND : 0;
+      const scoreThisLevel = base + bonus;
 
+      // The frozen timer bar (left as-is by stopTimer()) stays put through
+      // the reveal — the score only replaces it once the reveal is over,
+      // so the two don't compete for attention: first *why*, then *what
+      // you earned*.
       runReveal(level, {
         onPhaseChange: (phase) => {
           if (phase === "confirmed") {
@@ -179,9 +303,19 @@
           } else if (phase === "revealing") {
             els.guessBtn.textContent = "Revealing…";
           } else if (phase === "done") {
-            els.guessBtn.hidden = true;
-            els.continueBtn.hidden = false;
-            els.continueBtn.textContent = i + 1 >= dayData.levels.length ? "See results" : "Next";
+            // Keep guessBtn in place (just relabeled) until the replacement
+            // is actually ready — hiding it here and continueBtn later
+            // would leave a gap with neither button in the flex column,
+            // and board-wrap (flex:1) would visibly grow to fill it and
+            // then snap back once continueBtn appeared.
+            els.guessBtn.textContent = "Scoring…";
+            els.timerTrack.hidden = true;
+            els.scoreReveal.hidden = false;
+            revealScore(base, bonus, () => {
+              els.guessBtn.hidden = true;
+              els.continueBtn.hidden = false;
+              els.continueBtn.textContent = i + 1 >= dayData.levels.length ? "See results" : "Next";
+            });
           }
         },
         onRevealRegion: (region) => {
@@ -189,12 +323,20 @@
         },
       });
 
-      els.continueBtn.onclick = () => advance(date, dateLabel, dayData, progress, i, correct);
+      els.continueBtn.onclick = () => advance(date, dateLabel, dayData, progress, i, correct, scoreThisLevel);
+    }
+
+    els.guessBtn.onclick = () => {
+      if (selected === null) return;
+      confirmGuess();
     };
+
+    startTimer(confirmGuess);
   }
 
-  function advance(date, dateLabel, dayData, progress, i, correct) {
+  function advance(date, dateLabel, dayData, progress, i, correct, scoreThisLevel) {
     progress.levelResults[i] = correct;
+    progress.levelScores[i] = scoreThisLevel;
 
     if (i === dayData.levels.length - 1) {
       progress.completed = true;
@@ -213,7 +355,7 @@
     els.resultsDate.textContent = dateLabel;
     const streak = loadStreak();
     const levelNames = dayData.levels.map((l) => LEVEL_LABELS[l.difficulty]);
-    renderResults({ resultsList: els.resultsList, streakNum: els.streakNum }, levelNames, progress, streak);
+    renderResults({ resultsList: els.resultsList, streakNum: els.streakNum, scoreNum: els.scoreNum }, levelNames, progress, streak);
 
     els.shareLink.onclick = async (e) => {
       e.preventDefault();

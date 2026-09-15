@@ -21,7 +21,7 @@ function safeSet(key, value) {
 function loadProgress(date) {
   const stored = safeGet(STORAGE_PREFIX + "progress:" + date);
   if (stored && stored.date === date) return stored;
-  return { date, levelResults: [null, null, null], currentLevel: 0, completed: false };
+  return { date, levelResults: [null, null, null], levelScores: [null, null, null], currentLevel: 0, completed: false };
 }
 
 function saveProgress(progress) {

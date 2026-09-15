@@ -25,13 +25,22 @@
         <section id="landing-screen" class="screen screen-landing" hidden>
           <div class="eyebrow" id="landing-date"></div>
           <h1 class="display-heading landing-heading">Today's territories are waiting</h1>
-          <p class="tagline">Three puzzles. Tap the region you think covers the most ground, then watch the reveal.</p>
+          <p class="tagline">Three puzzles, twenty seconds each. Tap the region you think covers the most ground before time runs out.</p>
           <button id="start-btn" class="btn-primary">Play</button>
         </section>
 
         <section id="level-screen" class="screen screen-level" hidden>
           <div class="level-head">
             <div class="level-name" id="level-name"></div>
+            <div class="level-meter" id="level-meter">
+              <div class="timer-track" id="timer-track">
+                <div class="timer-fill" id="timer-fill"></div>
+              </div>
+              <div class="score-reveal" id="score-reveal" hidden>
+                <div class="level-score" id="level-score">+0</div>
+                <div class="score-bonus-label" id="score-bonus-label">Time Bonus</div>
+              </div>
+            </div>
           </div>
 
           <div class="banner-wrap" id="banner-wrap">
@@ -57,9 +66,15 @@
 
           <div class="results-list" id="results-list"></div>
 
-          <div class="streak-block">
-            <div class="streak-num" id="streak-num"></div>
-            <div class="eyebrow">Day streak</div>
+          <div class="stats-row">
+            <div class="streak-block">
+              <div class="streak-num" id="streak-num"></div>
+              <div class="eyebrow">Day streak</div>
+            </div>
+            <div class="streak-block">
+              <div class="streak-num" id="score-num"></div>
+              <div class="eyebrow">Score</div>
+            </div>
           </div>
 
           <div class="share-wrap">
@@ -89,10 +104,14 @@
         </div>
         <div class="step">
           <div class="step-num">2</div>
-          <div class="step-text">Tap the one that looks biggest, then confirm.</div>
+          <div class="step-text">You have 20 seconds per puzzle.</div>
         </div>
         <div class="step">
           <div class="step-num">3</div>
+          <div class="step-text">Tap the one that looks biggest, then confirm.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
           <div class="step-text">Try to get all three puzzles right.</div>
         </div>
       </div>

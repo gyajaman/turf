@@ -1,6 +1,10 @@
-const REVEAL_CONFIRM_DELAY_MS = 650;
-const REVEAL_STAGGER_MS = 550;
-const REVEAL_DONE_DELAY_MS = 300;
+// Trimmed down from 650/550/300 now that the score reveal plays *after*
+// this finishes rather than alongside it — the score needs its own real
+// beat, so the reveal itself should feel brisk instead of adding its old
+// pacing on top.
+const REVEAL_CONFIRM_DELAY_MS = 500;
+const REVEAL_STAGGER_MS = 400;
+const REVEAL_DONE_DELAY_MS = 150;
 
 // Drives the guess lifecycle: idle -> confirmed -> revealing -> done.
 // onPhaseChange(phase) fires on each transition (so the caller can update the
