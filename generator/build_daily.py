@@ -23,7 +23,7 @@ PALETTE = [
 DIFFICULTIES = ["easy", "medium", "hard"]
 K_BY_DIFFICULTY = {"easy": 3, "medium": 4, "hard": 5}
 TIE_RETRY_STEP = 104729  # large prime, keeps retried seeds well spread out
-MAX_TIE_RETRIES = 20
+MAX_TIE_RETRIES = 60
 MIN_WIN_MARGIN = 1.15  # largest region must beat the runner-up by at least this ratio
 
 
